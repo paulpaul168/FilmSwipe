@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  accounts         Account[]
+  sessions         Session[]
+  groupMemberships GroupMember[]
+  groupsOwned      Group[]
+  movies          Movie[]       @relation("MoviesCreated")
+  ratings         Rating[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  ownerId     String
+  inviteToken String   @unique
+  createdAt   DateTime @default(now())
+
+  owner   User         @relation(fields: [ownerId], references: [id])
+  members GroupMember[]
+  movies  Movie[]
+}
+
+model GroupMember {
+  groupId String
+  userId  String
+  role    GroupRole @default(MEMBER)
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+}
+
+enum GroupRole {
+  OWNER
+  MEMBER
+}
+
+model Movie {
+  id            String   @id @default(cuid())
+  groupId       String
+  title         String
+  year          Int?
+  imdbUrl       String?
+  note          String?
+  createdById   String
+  createdAt     DateTime @default(now())
+  normalizedKey String
+
+  group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator User   @relation("MoviesCreated", fields: [createdById], references: [id])
+  ratings Rating[]
+
+  @@unique([groupId, normalizedKey])
+}
+
+model Rating {
+  movieId   String
+  userId    String
+  value     RatingValue
+  createdAt DateTime @default(now())
+
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([movieId, userId])
+}
+
+enum RatingValue {
+  LIKE
+  SUPERLIKE
+  SUPERDISLIKE
+}
