@@ -8,6 +8,18 @@ const createSchema = z.object({ name: z.string().min(1).max(200) });
 export async function POST(req: Request) {
   try {
     const user = await requireUser();
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { id: true },
+    });
+    if (!dbUser) {
+      return NextResponse.json(
+        { error: "Session invalid: user no longer exists. Please sign out and sign in again." },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const parsed = createSchema.safeParse(body);
     if (!parsed.success) {
