@@ -1,16 +1,15 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
-import { DevSignInButton } from "@/components/DevSignInButton";
 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; error_description?: string; callbackUrl?: string }>;
+  searchParams: Promise<{ error?: string; callbackUrl?: string }>;
 }) {
   const session = await auth();
   const params = await searchParams;
-  const { error, error_description, callbackUrl } = params;
+  const { error, callbackUrl } = params;
 
   if (session?.user) {
     return (
@@ -32,32 +31,14 @@ export default async function HomePage({
       <h1 className="text-4xl font-bold">Filmswipe</h1>
       {error && (
         <div className="max-w-md rounded-lg border border-red-800 bg-red-950/50 p-4 text-red-200">
-          <p className="font-medium">Sign-in failed</p>
-          <p className="mt-2 font-mono text-sm">error: {error}</p>
-          {error_description && (
-            <p className="mt-1 font-mono text-sm">error_description: {error_description}</p>
-          )}
-          <div className="mt-3 flex gap-4 text-sm">
-            <Link href="/auth/diagnose" className="text-amber-400 hover:underline">
-              Auth diagnostic →
-            </Link>
-            <Link
-              href={`/auth/error?error=${encodeURIComponent(error)}${error_description ? `&error_description=${encodeURIComponent(error_description)}` : ""}`}
-              className="text-zinc-500 hover:underline"
-            >
-              Error details
-            </Link>
-          </div>
+          <p className="font-medium">Sign-in failed. Please try again.</p>
         </div>
       )}
       <p className="max-w-md text-center text-zinc-400">
         Group movie nights made simple. Create a group, submit movies, swipe to
         rate, and see what everyone wants to watch.
       </p>
-      <div className="flex flex-col items-center gap-4">
-        <GoogleSignInButton callbackUrl={callbackUrl} />
-        <DevSignInButton />
-      </div>
+      <GoogleSignInButton callbackUrl={callbackUrl} />
     </div>
   );
 }
