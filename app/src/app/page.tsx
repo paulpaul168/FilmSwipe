@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { DevSignInButton } from "@/components/DevSignInButton";
 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; error_description?: string }>;
+  searchParams: Promise<{ error?: string; error_description?: string; callbackUrl?: string }>;
 }) {
   const session = await auth();
   const params = await searchParams;
-  const { error, error_description } = params;
+  const { error, error_description, callbackUrl } = params;
 
   if (session?.user) {
     return (
@@ -54,12 +55,7 @@ export default async function HomePage({
         rate, and see what everyone wants to watch.
       </p>
       <div className="flex flex-col items-center gap-4">
-        <Link
-          href="/api/auth/signin/google"
-          className="rounded-lg bg-amber-500 px-8 py-4 font-medium text-zinc-950 hover:bg-amber-400"
-        >
-          Continue with Google
-        </Link>
+        <GoogleSignInButton callbackUrl={callbackUrl} />
         <DevSignInButton />
       </div>
     </div>

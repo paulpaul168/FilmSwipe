@@ -13,9 +13,7 @@ export default async function JoinPage({
   try {
     user = await requireUser();
   } catch {
-    redirect(
-      `/api/auth/signin/google?callbackUrl=${encodeURIComponent(`/join/${token}`)}`
-    );
+    redirect(`/?callbackUrl=${encodeURIComponent(`/join/${token}`)}`);
   }
 
   const group = await prisma.group.findUnique({
