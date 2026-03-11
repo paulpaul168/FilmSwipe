@@ -15,6 +15,7 @@ export function MovieSubmissionForm({ groupId }: { groupId: string }) {
   const [loading, setLoading] = useState(false);
   const [imdbResults, setImdbResults] = useState<ImdbResult[] | null>(null);
   const [imdbSearching, setImdbSearching] = useState(false);
+  const [fetchingDate, setFetchingDate] = useState(false);
 
   async function searchImdb() {
     const q = [title.trim(), year.trim()].filter(Boolean).join(" ");
@@ -32,11 +33,25 @@ export function MovieSubmissionForm({ groupId }: { groupId: string }) {
     }
   }
 
-  function selectImdb(r: ImdbResult) {
+  async function selectImdb(r: ImdbResult) {
     setTitle(r.title);
     if (r.year) setYear(r.year);
     setImdbUrl(r.url);
     setImdbResults(null);
+
+    setFetchingDate(true);
+    try {
+      const res = await fetch(`/api/imdb/detail?url=${encodeURIComponent(r.url)}`);
+      const data = await res.json();
+      if (data.releaseDate) {
+        const parsed = new Date(data.releaseDate);
+        if (!isNaN(parsed.getTime())) {
+          setYear(String(parsed.getFullYear()));
+        }
+      }
+    } catch {} finally {
+      setFetchingDate(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -130,7 +145,7 @@ export function MovieSubmissionForm({ groupId }: { groupId: string }) {
             value={year}
             onChange={(e) => setYear(e.target.value)}
             className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-zinc-100 focus:border-amber-500 focus:outline-none"
-            placeholder="2024"
+            placeholder={fetchingDate ? "Loading…" : "2024"}
           />
         </div>
         <div>
