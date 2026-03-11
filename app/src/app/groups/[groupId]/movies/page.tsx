@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { assertGroupMember } from "@/lib/groupAccess";
 import { MovieSubmissionForm } from "./MovieSubmissionForm";
+import { DeleteMovieButton } from "./DeleteMovieButton";
 
 export default async function GroupMoviesPage({
   params,
@@ -18,6 +19,15 @@ export default async function GroupMoviesPage({
   } catch {
     notFound();
   }
+
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+    select: { ownerId: true },
+  });
+
+  if (!group) notFound();
+
+  const isOwner = group.ownerId === user.id;
 
   const movies = await prisma.movie.findMany({
     where: { groupId },
@@ -82,12 +92,15 @@ export default async function GroupMoviesPage({
                       {a.superlikes} · 👎{a.superdislikes}
                     </p>
                   </div>
-                  <Link
-                    href={`/groups/${groupId}/swipe`}
-                    className="rounded bg-zinc-700 px-3 py-1 text-sm hover:bg-zinc-600"
-                  >
-                    Swipe
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    {isOwner && <DeleteMovieButton movieId={m.id} />}
+                    <Link
+                      href={`/groups/${groupId}/swipe`}
+                      className="rounded bg-zinc-700 px-3 py-1 text-sm hover:bg-zinc-600"
+                    >
+                      Swipe
+                    </Link>
+                  </div>
                 </li>
               );
             })}
