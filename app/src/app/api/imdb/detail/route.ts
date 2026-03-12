@@ -1,12 +1,31 @@
 import { NextResponse } from "next/server";
 import * as cheerio from "cheerio";
+import { requireUser } from "@/lib/auth";
 
 export async function GET(req: Request) {
+  try { await requireUser(); } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
-  const url = searchParams.get("url");
-  if (!url || !url.includes("imdb.com/title/tt")) {
+  const raw = searchParams.get("url") ?? "";
+
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
     return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
   }
+
+  if (
+    parsed.protocol !== "https:" ||
+    !["www.imdb.com", "imdb.com"].includes(parsed.hostname) ||
+    !parsed.pathname.startsWith("/title/tt")
+  ) {
+    return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
+  }
+
+  const url = parsed.toString();
 
   try {
     const res = await fetch(url, {

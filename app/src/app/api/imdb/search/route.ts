@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import * as cheerio from "cheerio";
+import { requireUser } from "@/lib/auth";
 
 export async function GET(req: Request) {
+  try { await requireUser(); } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q");
   if (!q || q.length > 200) {
