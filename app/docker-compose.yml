@@ -3,7 +3,7 @@ services:
     image: postgres:18-alpine
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: filmswipe
     ports:
       - "5432:5432"
@@ -20,7 +20,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/filmswipe
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/filmswipe
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?Set NEXTAUTH_SECRET in .env (openssl rand -base64 32)}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
