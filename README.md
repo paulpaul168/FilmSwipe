@@ -9,6 +9,13 @@ Group movie nights made simple. Create a group, submit movies, swipe to rate, an
 - **Swipe to rate** -- like, super-like, or pass on each movie
 - **Rankings** -- aggregated scores so the group can pick a winner
 
+<p align="center">
+  <img src="screenshots/login.png" width="24%" alt="Login" />
+  <img src="screenshots/movies.png" width="24%" alt="Movies" />
+  <img src="screenshots/swipe.png" width="24%" alt="Swipe" />
+  <img src="screenshots/ranking.png" width="24%" alt="Ranking" />
+</p>
+
 ## Tech Stack
 
 - Next.js (App Router) + TypeScript
