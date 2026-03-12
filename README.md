@@ -159,6 +159,75 @@ server {
 
 Enable modules: `a2enmod ssl proxy proxy_http headers`, then `systemctl reload apache2`.
 
+## Continuous Deployment (CD)
+
+On every push to `main`, after CI passes, the app is deployed to your server via SSH. You need **two** SSH keys: one so GitHub Actions can SSH into the server, and one (a GitHub **deploy key**) so the server can `git pull` from GitHub.
+
+### One-time server setup
+
+1. **GitHub deploy key (so the server can pull)** — On the server, create a key for GitHub and add it as a deploy key in the repo:
+
+   ```bash
+   # On the server
+   ssh-keygen -t ed25519 -C "filmswipe-deploy" -f ~/.ssh/github_filmswipe_deploy -N ""
+   cat ~/.ssh/github_filmswipe_deploy.pub
+   ```
+
+   In GitHub: repo **Settings → Deploy keys → Add deploy key**. Paste the public key; enable **Allow read access** (enough for pull). Title e.g. `FilmSwipe server`.
+
+   Tell git on the server to use this key for GitHub:
+
+   ```bash
+   # On the server: ~/.ssh/config
+   Host github.com
+     IdentityFile ~/.ssh/github_filmswipe_deploy
+     IdentitiesOnly yes
+   ```
+
+2. **Clone the repo** on the server (use the SSH URL so the deploy key is used):
+
+   ```bash
+   git clone git@github.com:YOUR_USERNAME/FilmSwipe.git /opt/FilmSwipe
+   cd /opt/FilmSwipe/app
+   ```
+
+3. **Configure environment** and start once with Docker:
+
+   ```bash
+   cp .env.example .env
+   # Edit .env: DATABASE_URL, NEXTAUTH_*, GOOGLE_*
+   docker compose up -d --build
+   ```
+
+4. **SSH access for GitHub Actions**: Create a *different* SSH key pair so the workflow can log into the server. On your machine:
+
+   ```bash
+   ssh-keygen -t ed25519 -C "github-actions-deploy" -f deploy_key -N ""
+   ```
+
+   - Add the **public** key to the server so the runner can log in:
+
+     ```bash
+     # On the server, append deploy_key.pub to authorized_keys
+     cat deploy_key.pub >> ~/.ssh/authorized_keys
+     ```
+
+   - You will add the **private** key as a GitHub secret in the next step.
+
+### GitHub repository secrets
+
+In the repo: **Settings → Secrets and variables → Actions**, add:
+
+| Secret            | Description |
+|-------------------|-------------|
+| `SSH_HOST`        | Server hostname or IP (e.g. `filmswipe.example.com` or `192.168.1.10`) |
+| `SSH_USER`        | SSH username on the server (e.g. `deploy` or `ubuntu`) |
+| `SSH_PRIVATE_KEY` | Full contents of the **private** key file (e.g. `deploy_key`) |
+| `DEPLOY_PATH`     | Path on the server where the repo is cloned (e.g. `/opt/FilmSwipe`) |
+| `SSH_PORT`        | Optional. SSH port if not 22 (e.g. `2222`) |
+
+After that, every push to `main` will run CI and then deploy: the workflow SSHs into the server, runs `git pull` in the repo, then `docker compose up -d --build` in `app/`.
+
 ## Scripts
 
 All scripts are run from the `app/` directory with `npm run <script>`.
