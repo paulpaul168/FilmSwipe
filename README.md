@@ -77,25 +77,19 @@ Migrations run automatically on startup. The app will be at http://localhost:300
 
 ### Changing the Postgres password
 
-The default password is `postgres` -- fine for local development, but **change it for any real deployment**. The password appears in three places that must stay in sync:
+The default password is `postgres` -- fine for local development, but **change it for any real deployment**. Set `POSTGRES_PASSWORD` in your `.env` file; `docker-compose.yml` picks it up automatically:
 
-| File | What to change |
-|------|---------------|
-| `.env` | The password in the `DATABASE_URL` connection string |
-| `docker-compose.yml` | `POSTGRES_PASSWORD` under the `db` service |
-| `docker-compose.yml` | The password in `DATABASE_URL` under the `app` service |
+```
+# .env
+POSTGRES_PASSWORD=s3cret
+```
 
-For example, if you pick `s3cret` as the new password:
+If you also use the `DATABASE_URL` locally (outside Docker), update it there too:
 
 ```
 # .env
 DATABASE_URL="postgresql://postgres:s3cret@localhost:5432/filmswipe"
-
-# docker-compose.yml  →  db service
-POSTGRES_PASSWORD: s3cret
-
-# docker-compose.yml  →  app service
-DATABASE_URL: postgresql://postgres:s3cret@db:5432/filmswipe
+POSTGRES_PASSWORD=s3cret
 ```
 
 ## Reverse Proxy (HTTPS)
