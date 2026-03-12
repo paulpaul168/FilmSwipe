@@ -92,6 +92,16 @@ export function SwipeDeck({
         <p className="mt-2 text-sm text-zinc-500">
           by {current.creator.name ?? "Unknown"}
         </p>
+        {current.imdbUrl && (
+          <a
+            href={current.imdbUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-block text-sm text-amber-400 hover:text-amber-300"
+          >
+            View on IMDb &rarr;
+          </a>
+        )}
       </div>
 
       <div className="flex justify-center gap-4">
