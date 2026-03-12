@@ -2,79 +2,134 @@
 
 Group movie nights made simple. Create a group, submit movies, swipe to rate, and see what everyone wants to watch.
 
+## Features
+
+- **Groups** -- create or join via invite link
+- **Movie submissions** -- search by title with IMDb metadata auto-fill
+- **Swipe to rate** -- like, super-like, or pass on each movie
+- **Rankings** -- aggregated scores so the group can pick a winner
+
 ## Tech Stack
 
 - Next.js (App Router) + TypeScript
 - PostgreSQL + Prisma
-- Auth.js / NextAuth with Google OAuth
+- NextAuth / Auth.js with Google OAuth
 - Tailwind CSS
 
 ## Quick Start
 
-### Local development
+All commands below run from the `app/` directory.
 
-1. Copy env example and configure:
+### 1. Configure environment
 
 ```bash
 cd app
 cp .env.example .env
 ```
 
-Edit `.env` and set:
+Edit `.env`:
 
-- `DATABASE_URL` – Postgres connection string (e.g. `postgresql://postgres:postgres@localhost:5432/filmswipe`)
-- `NEXTAUTH_URL` – Must match how you access the app (e.g. `http://localhost:3000`). If you use a network IP like `http://192.168.1.114:3000`, set that instead.
-- `NEXTAUTH_SECRET` – random string (e.g. `openssl rand -base64 32`)
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` – from [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+| Variable | Value |
+|----------|-------|
+| `DATABASE_URL` | Postgres connection string (default works with the Docker command below) |
+| `NEXTAUTH_URL` | URL you access the app at, e.g. `http://localhost:3000` |
+| `NEXTAUTH_SECRET` | `openssl rand -base64 32` |
+| `GOOGLE_CLIENT_ID` | From [Google Cloud Console](https://console.cloud.google.com/apis/credentials) |
+| `GOOGLE_CLIENT_SECRET` | Same as above |
 
-**Google OAuth setup:** In Google Cloud Console → Credentials → your OAuth 2.0 Client:
-- **Authorized JavaScript origins:** Add your app URL (e.g. `http://localhost:3000` or `http://192.168.1.114:3000`)
-- **Authorized redirect URIs:** Add `{your NEXTAUTH_URL}/api/auth/callback/google`
+**Google OAuth setup** -- in Cloud Console → Credentials → your OAuth 2.0 Client:
 
-2. Start Postgres (e.g. via Docker):
+- **Authorized JavaScript origins:** your app URL (e.g. `http://localhost:3000`)
+- **Authorized redirect URIs:** `<NEXTAUTH_URL>/api/auth/callback/google`
+
+### 2. Local development
 
 ```bash
+# Start Postgres
 docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=filmswipe postgres:18-alpine
-```
 
-3. Run migrations and seed:
-
-```bash
+# Install, migrate, seed, run
+npm install
 npm run db:migrate:dev
 npm run db:seed
-```
-
-4. Start the app:
-
-```bash
 npm run dev
 ```
 
-### Docker (self-hosted)
+The app will be available at http://localhost:3000.
 
-From the `app` directory:
+### 3. Docker (self-hosted)
 
 ```bash
 cd app
 cp .env.example .env
-# Edit .env with GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, NEXTAUTH_SECRET
+# fill in GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, NEXTAUTH_SECRET
 docker compose up --build
 ```
 
-The app will run at http://localhost:3000. Migrations run automatically on startup.
+Migrations run automatically on startup. The app will be at http://localhost:3000.
 
-### Apache2 reverse proxy (HTTPS)
+### Changing the Postgres password
 
-Run the app (e.g. on `localhost:3000`), then proxy and terminate SSL in Apache. NextAuth is configured with `trustHost: true` so it respects `X-Forwarded-*` headers.
+The default password is `postgres` -- fine for local development, but **change it for any real deployment**. The password appears in three places that must stay in sync:
 
-1. **NEXTAUTH_URL** in `.env` must be the **public** URL users use, e.g. `https://filmswipe.example.com`.
-2. In Google OAuth, set **Authorized JavaScript origins** and **Authorized redirect URIs** to that same HTTPS URL (and `/api/auth/callback/google`).
-3. Apache: redirect HTTP → HTTPS on port 80; on **port 443** proxy to the app and set `X-Forwarded-Proto` and `X-Forwarded-Host` (so NextAuth sees the real URL). Do not put those headers on the port 80 vhost.
+| File | What to change |
+|------|---------------|
+| `.env` | The password in the `DATABASE_URL` connection string |
+| `docker-compose.yml` | `POSTGRES_PASSWORD` under the `db` service |
+| `docker-compose.yml` | The password in `DATABASE_URL` under the `app` service |
 
-Example site config (e.g. `/etc/apache2/sites-available/filmswipe.conf`):
+For example, if you pick `s3cret` as the new password:
+
+```
+# .env
+DATABASE_URL="postgresql://postgres:s3cret@localhost:5432/filmswipe"
+
+# docker-compose.yml  →  db service
+POSTGRES_PASSWORD: s3cret
+
+# docker-compose.yml  →  app service
+DATABASE_URL: postgresql://postgres:s3cret@db:5432/filmswipe
+```
+
+## Reverse Proxy (HTTPS)
+
+If you deploy behind a reverse proxy, two things must match:
+
+1. **`NEXTAUTH_URL`** in `.env` must be the public URL (e.g. `https://filmswipe.example.com`).
+2. **Google OAuth** origins and redirect URIs must use that same URL.
+
+NextAuth is configured with `trustHost: true` so it respects `X-Forwarded-*` headers from the proxy.
+
+### Nginx
+
+```nginx
+server {
+    listen 80;
+    server_name filmswipe.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name filmswipe.example.com;
+
+    ssl_certificate     /path/to/fullchain.pem;
+    ssl_certificate_key /path/to/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host  $host;
+    }
+}
+```
+
+### Apache
 
 ```apache
-# Redirect HTTP to HTTPS
 <VirtualHost *:80>
     ServerName filmswipe.example.com
     Redirect permanent / https://filmswipe.example.com/
@@ -83,21 +138,23 @@ Example site config (e.g. `/etc/apache2/sites-available/filmswipe.conf`):
 <VirtualHost *:443>
     ServerName filmswipe.example.com
     SSLEngine on
-    # SSLCertificateFile /path/to/fullchain.pem
-    # SSLCertificateKeyFile /path/to/privkey.pem
+    SSLCertificateFile    /path/to/fullchain.pem
+    SSLCertificateKeyFile /path/to/privkey.pem
 
     ProxyPreserveHost On
     RequestHeader set X-Forwarded-Proto "https"
-    RequestHeader set X-Forwarded-Host "filmswipe.example.com"
+    RequestHeader set X-Forwarded-Host  "filmswipe.example.com"
 
-    ProxyPass / http://127.0.0.1:3000/
+    ProxyPass        / http://127.0.0.1:3000/
     ProxyPassReverse / http://127.0.0.1:3000/
 </VirtualHost>
 ```
 
-Enable mods: `a2enmod ssl proxy proxy_http headers`, then `systemctl reload apache2`. Ensure the app is bound to the same port (e.g. 3000) that `ProxyPass` uses.
+Enable modules: `a2enmod ssl proxy proxy_http headers`, then `systemctl reload apache2`.
 
 ## Scripts
+
+All scripts are run from the `app/` directory with `npm run <script>`.
 
 | Script | Description |
 |--------|-------------|
@@ -111,16 +168,22 @@ Enable mods: `a2enmod ssl proxy proxy_http headers`, then `systemctl reload apac
 | `db:migrate:dev` | Create/apply migrations (development) |
 | `db:seed` | Seed demo data |
 
-## Environment Variables
+## Contributing
 
-| Variable | Description |
-|---------|-------------|
-| `DATABASE_URL` | PostgreSQL connection URL |
-| `NEXTAUTH_URL` | App URL (e.g. `http://localhost:3000`) |
-| `NEXTAUTH_SECRET` | Secret for session encryption |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+1. Fork the repo and create a feature branch from `main`.
+2. Install dependencies and make sure everything passes before you start:
+
+```bash
+cd app
+npm install
+npm run lint
+npm run typecheck
+npm test -- --run
+```
+
+3. Make your changes, then verify lint, typecheck, and tests still pass.
+4. Open a pull request against `main` with a clear description of what you changed and why.
 
 ## License
 
-See [LICENSE](LICENSE).
+[MIT](LICENSE)
