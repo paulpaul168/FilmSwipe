@@ -13,7 +13,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
-    "db:seed": "prisma generate && prisma db seed"
+    "db:seed": "prisma generate && prisma db seed",
+    "screenshots": "bash scripts/update-screenshots.sh"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
@@ -44,7 +45,8 @@
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "playwright": "^1.49.0"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -237,6 +237,13 @@ All scripts are run from the `app/` directory with `npm run <script>`.
 | `db:migrate` | Deploy migrations (production) |
 | `db:migrate:dev` | Create/apply migrations (development) |
 | `db:seed` | Seed demo data |
+| `screenshots` | Capture screenshots from URLs in `scripts/screenshot-urls.config` |
+
+### Updating screenshots
+
+1. Edit `app/scripts/screenshot-urls.config`: one URL per line; optional output filename after a tab or space (e.g. `http://localhost:3000/groups	groups-list.png`).
+2. Start the app if using localhost URLs: `npm run dev`.
+3. Run `npm run screenshots` from the `app/` directory. Screenshots are written to `app/screenshots/` (or set `SCREENSHOTS_DIR` to another path).
 
 ## Contributing
 
