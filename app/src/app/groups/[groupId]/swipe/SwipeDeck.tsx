@@ -107,39 +107,39 @@ export function SwipeDeck({
         )}
       </div>
 
-      <div className="flex flex-wrap justify-center gap-3">
+      <div className="flex flex-nowrap justify-center gap-2 overflow-x-auto pb-1">
         <button
           onClick={() => submitRating("SUPERDISLIKE")}
           disabled={loading}
-          className="rounded-xl bg-red-950/80 px-5 py-3 text-sm font-medium text-red-300 ring-1 ring-red-900/50 hover:bg-red-900/60 disabled:opacity-50"
+          className="shrink-0 rounded-xl bg-red-950/80 px-3 py-2.5 text-xs font-medium text-red-300 ring-1 ring-red-900/50 hover:bg-red-900/60 disabled:opacity-50 sm:px-4 sm:text-sm"
         >
-          👎 Superdislike
+          👎 Dislike
         </button>
         <button
           onClick={skip}
           disabled={loading}
-          className="rounded-xl bg-zinc-800 px-5 py-3 text-sm font-medium text-zinc-300 ring-1 ring-zinc-700 hover:bg-zinc-700 disabled:opacity-50"
+          className="shrink-0 rounded-xl bg-zinc-800 px-3 py-2.5 text-xs font-medium text-zinc-300 ring-1 ring-zinc-700 hover:bg-zinc-700 disabled:opacity-50 sm:px-4 sm:text-sm"
         >
           Skip
         </button>
         <button
           onClick={() => submitRating("LIKE")}
           disabled={loading}
-          className="rounded-xl bg-emerald-950/80 px-5 py-3 text-sm font-medium text-emerald-300 ring-1 ring-emerald-900/50 hover:bg-emerald-900/60 disabled:opacity-50"
+          className="shrink-0 rounded-xl bg-emerald-950/80 px-3 py-2.5 text-xs font-medium text-emerald-300 ring-1 ring-emerald-900/50 hover:bg-emerald-900/60 disabled:opacity-50 sm:px-4 sm:text-sm"
         >
           👍 Like
         </button>
         <button
           onClick={() => submitRating("SUPERLIKE")}
           disabled={loading}
-          className="rounded-xl bg-amber-500 px-5 py-3 text-sm font-medium text-zinc-950 ring-1 ring-amber-400/50 hover:bg-amber-400 disabled:opacity-50"
+          className="shrink-0 rounded-xl bg-amber-500 px-3 py-2.5 text-xs font-medium text-zinc-950 ring-1 ring-amber-400/50 hover:bg-amber-400 disabled:opacity-50 sm:px-4 sm:text-sm"
         >
           🔥 Superlike
         </button>
       </div>
 
       <p className="text-center text-xs text-zinc-600">
-        L Like · S Superlike · D Superdislike · K Skip
+        L Like · S Superlike · D Dislike · K Skip
       </p>
     </div>
   );
