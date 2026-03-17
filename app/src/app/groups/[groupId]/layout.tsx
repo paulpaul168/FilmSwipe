@@ -1,9 +1,9 @@
 import { redirect, notFound } from "next/navigation";
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { assertGroupMember } from "@/lib/groupAccess";
 import { InviteLink } from "./InviteLink";
+import { GroupNav } from "./GroupNav";
 
 export default async function GroupLayout({
   children,
@@ -31,32 +31,19 @@ export default async function GroupLayout({
   const base = `/groups/${groupId}`;
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-xl font-bold">{group.name}</h2>
-        <p className="text-sm text-zinc-500">{group._count.members} members</p>
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-zinc-100">
+            {group.name}
+          </h2>
+          <p className="mt-0.5 text-sm text-zinc-500">
+            {group._count.members} member{group._count.members !== 1 ? "s" : ""}
+          </p>
+        </div>
+        <InviteLink token={group.inviteToken} />
       </div>
-      <InviteLink token={group.inviteToken} />
-      <nav className="mb-8 flex gap-4 border-b border-zinc-800 pb-4">
-        <Link
-          href={`${base}/movies`}
-          className="text-zinc-400 hover:text-zinc-100"
-        >
-          Movies
-        </Link>
-        <Link
-          href={`${base}/swipe`}
-          className="text-zinc-400 hover:text-zinc-100"
-        >
-          Swipe
-        </Link>
-        <Link
-          href={`${base}/ranking`}
-          className="text-zinc-400 hover:text-zinc-100"
-        >
-          Ranking
-        </Link>
-      </nav>
+      <GroupNav base={base} />
       {children}
     </div>
   );

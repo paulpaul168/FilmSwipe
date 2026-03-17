@@ -16,16 +16,16 @@ export default async function GroupsLayout({
 
   return (
     <div className="min-h-screen bg-zinc-950">
-      <header className="border-b border-zinc-800 px-6 py-4">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <Link href="/groups" className="text-xl font-bold text-zinc-100">
+      <header className="w-full border-b border-zinc-800 bg-zinc-900/95 px-4 py-4 sm:px-6">
+        <div className="mx-auto flex w-full max-w-4xl items-center justify-between">
+          <Link href="/groups" className="text-2xl font-bold tracking-tight text-zinc-100">
             Filmswipe
           </Link>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-zinc-500">{user.name ?? user.email}</span>
+          <div className="flex items-center gap-5">
+            <span className="text-base text-zinc-500">{user.name ?? user.email}</span>
             <Link
               href="/api/auth/signout"
-              className="text-sm text-zinc-400 hover:text-zinc-200"
+              className="rounded-lg px-4 py-2 text-base font-medium text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
             >
               Sign out
             </Link>

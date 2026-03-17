@@ -35,8 +35,7 @@ export default async function SwipePage({
   });
 
   return (
-    <div className="flex flex-col items-center">
-      <h3 className="mb-6 text-lg font-semibold">Swipe to rate</h3>
+    <div className="flex min-h-[50vh] flex-col items-center justify-center">
       <SwipeDeck
         groupId={groupId}
         movies={unratedMovies}

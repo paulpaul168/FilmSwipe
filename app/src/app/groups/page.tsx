@@ -35,16 +35,16 @@ export default async function GroupsPage() {
             No groups yet. Create one or join via invite link.
           </p>
         ) : (
-          <ul className="space-y-4">
+          <ul className="space-y-3">
             {groups.map((gm) => (
               <li
                 key={gm.groupId}
-                className="rounded-lg border border-zinc-800 bg-zinc-900 p-4"
+                className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-4 transition-colors hover:border-zinc-700 hover:bg-zinc-900"
               >
                 <div className="flex items-center justify-between">
                   <div>
                     <Link
-                      href={`/groups/${gm.groupId}`}
+                      href={`/groups/${gm.groupId}/swipe`}
                       className="font-medium hover:underline"
                     >
                       {gm.group.name}
@@ -58,10 +58,10 @@ export default async function GroupsPage() {
                   <div className="flex gap-2">
                     <CopyInviteButton token={gm.group.inviteToken} />
                     <Link
-                      href={`/groups/${gm.groupId}`}
-                      className="rounded bg-zinc-700 px-3 py-1 text-sm hover:bg-zinc-600"
+                      href={`/groups/${gm.groupId}/swipe`}
+                      className="rounded-lg bg-amber-500/90 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-amber-400"
                     >
-                      Enter
+                      Swipe
                     </Link>
                   </div>
                 </div>
