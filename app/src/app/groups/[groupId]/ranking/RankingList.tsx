@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 
 type MovieRow = {
@@ -32,6 +33,8 @@ export function RankingList({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const groupId = pathname.split("/")[2] ?? "";
+  const swipeHref = groupId ? `/groups/${groupId}/swipe` : "#";
   const [sortBy, setSortBy] = useState<"score" | "likes" | "superlikes" | "superdislikes">("score");
 
   function buildSearch(params: Record<string, string>) {
@@ -154,13 +157,19 @@ export function RankingList({
                 <td className="py-3">{m.superlikes}</td>
                 <td className="py-3">{m.superdislikes}</td>
                 <td className="py-3">
-                  {m.myRating ? (
-                    <span className="rounded bg-zinc-700 px-2 py-0.5 text-xs">
-                      {m.myRating}
-                    </span>
-                  ) : (
-                    <span className="text-zinc-500">—</span>
-                  )}
+                  <Link
+                    href={`${swipeHref}?movieId=${encodeURIComponent(m.id)}`}
+                    className="cursor-pointer text-zinc-400 hover:text-zinc-200"
+                    title="Go to Swipe to change your rating"
+                  >
+                    {m.myRating ? (
+                      <span className="rounded bg-zinc-700 px-2 py-0.5 text-xs">
+                        {m.myRating}
+                      </span>
+                    ) : (
+                      <span className="text-zinc-500">—</span>
+                    )}
+                  </Link>
                 </td>
               </tr>
             ))}
