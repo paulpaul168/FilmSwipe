@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
-import * as cheerio from "cheerio";
 import { requireUser } from "@/lib/auth";
 
+type SuggestionItem = {
+  y?: number;
+};
+
+type SuggestionResponse = {
+  d?: SuggestionItem[];
+};
+
 export async function GET(req: Request) {
-  try { await requireUser(); } catch {
+  try {
+    await requireUser();
+  } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -25,13 +34,18 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
   }
 
-  const url = parsed.toString();
+  const ttMatch = parsed.pathname.match(/\/title\/(tt\d+)/);
+  if (!ttMatch) {
+    return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
+  }
+
+  const ttId = ttMatch[1];
+  const url = `https://v2.sg.media-imdb.com/suggestion/x/${ttId}.json`;
 
   try {
     const res = await fetch(url, {
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; Filmswipe/1.0; +https://github.com/filmswipe)",
+        Accept: "application/json",
       },
     });
 
@@ -39,20 +53,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "IMDb fetch failed" }, { status: 502 });
     }
 
-    const html = await res.text();
-    const $ = cheerio.load(html);
-
-    let releaseDate: string | null = null;
-
-    const ldJson = $('script[type="application/ld+json"]').first().html();
-    if (ldJson) {
-      try {
-        const ld = JSON.parse(ldJson);
-        if (ld.datePublished) {
-          releaseDate = ld.datePublished;
-        }
-      } catch {}
-    }
+    const data = (await res.json()) as SuggestionResponse;
+    const year = data.d?.[0]?.y;
+    const releaseDate = year ? `${year}-01-01` : null;
 
     return NextResponse.json({ releaseDate });
   } catch (e) {
